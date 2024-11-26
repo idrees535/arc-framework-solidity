@@ -12,6 +12,7 @@ contract PredictionMarketPositions is ERC1155, Ownable,AccessControl {
     // Base URI for token metadata
     string private baseURI;
 
+
     constructor(string memory _uri, address _initialOwner) ERC1155(_uri) Ownable(_initialOwner) {
         // Metadata URI for each token
         baseURI = _uri;
@@ -29,6 +30,7 @@ contract PredictionMarketPositions is ERC1155, Ownable,AccessControl {
     ) external  {
         uint256 tokenId = _getTokenId(marketId, outcomeIndex); // Create unique token ID
         _mint(to, tokenId, amount, "");
+        emit TokensMinted(to, tokenId, amount); 
     }
 
     function burn(
@@ -58,6 +60,7 @@ contract PredictionMarketPositions is ERC1155, Ownable,AccessControl {
     function uri(uint256 tokenId) public view override returns (string memory) {
         return string(abi.encodePacked(baseURI, Strings.toString(tokenId), ".json"));
     }
+
 
     event TokensMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
     event TokensBurned(address indexed from, uint256 indexed tokenId, uint256 amount);

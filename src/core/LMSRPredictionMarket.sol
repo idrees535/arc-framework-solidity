@@ -37,7 +37,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     
     uint256 public sharesDecimals = 10;
     uint8 public tokenDecimals = 18;
-    uint256 payoutPerShare = 1*(10**tokenDecimals);
+    uint256 public payoutPerShare = 1*(10**tokenDecimals);
 
     
     event SharesPurchased(address indexed user, uint256 outcomeIndex, uint256 numShares, uint256 cost);
@@ -311,6 +311,27 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         return netCost;
     }
 
+    function estimatePayment(uint256 outcomeIndex, uint256 numShares) public view returns (uint256) {
+        require(outcomeIndex < outcomes.length, "Invalid outcome index");
+        require(numShares > 0, "Number of shares must be greater than zero");
+        require(b > 0, "Liquidity parameter b must be greater than zero");
+        uint256[] memory qBefore = getQuantities();
+        int128 costBefore = calculateCost(qBefore);
+
+        // Simulate the purchase
+        qBefore[outcomeIndex] -= numShares;
+        int128 costAfter = calculateCost(qBefore);
+        
+        int128 costDifference = ABDKMath64x64.sub(costBefore,costAfter);
+        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10**sharesDecimals));
+        uint256 payment = ABDKMath64x64.toUInt(scaledCostDifference) * 10 ** (tokenDecimals - sharesDecimals);
+        
+        uint256 feeAmount = (payment * feePercent) / 100;
+        uint256 netpayment = payment + feeAmount;
+
+        return netpayment;
+    }
+
     function updateOracle(address _newOracle) external onlyOwner {
         require(_newOracle != address(0), "Invalid oracle address");
         oracle = _newOracle;
@@ -332,10 +353,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(token.transfer(feeRecipient, remainingFunds), "Withdrawal failed");
 }
 
-  function getPositionId(uint256 _marketId, uint256 outcomeIndex) public returns (uint256) {
+  function getPositionId(uint256 _marketId, uint256 outcomeIndex) public pure returns (uint256) {
         return uint256(keccak256(abi.encode(_marketId, outcomeIndex)));
-    }  
-
-
-
+    } 
 }
