@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../src/core/LMSRPredictionMarket.sol";
-import "../src/core/PredictionMarketPositions.sol";
+import "../../src/core/LMSRPredictionMarket.sol";
+import "../../src/core/PredictionMarketPositions.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../src/mock/ERC20Token.sol";
+import "../../src/mock/ERC20Token.sol";
 import "forge-std/console.sol";
 
 
