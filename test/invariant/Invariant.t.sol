@@ -46,10 +46,7 @@ contract LMSRInvariantTest is StdInvariant, Test {
         token.transfer(bob, 500_000 * 1e18);
 
         // Deploy PredictionMarketPositions contract
-        positions = new PredictionMarketPositions(
-            "https://example.com/{id}.json",
-            owner
-        );
+        positions = new PredictionMarketPositions("https://example.com/{id}.json", owner);
 
         // Deploy LMSRPredictionMarket with initial liquidity funds
         market = new LMSRPredictionMarket(
@@ -83,9 +80,7 @@ contract LMSRInvariantTest is StdInvariant, Test {
         selectors[0] = Handler.withdrawFees.selector;
 
         // Set target contract for invariant testing
-        targetSelector(
-            FuzzSelector({addr: address(handler), selectors: selectors})
-        );
+        targetSelector(FuzzSelector({addr: address(handler), selectors: selectors}));
         targetContract(address(handler));
     }
 
@@ -94,12 +89,7 @@ contract LMSRInvariantTest is StdInvariant, Test {
         uint256 actualCollectedFees = market.collectedFees();
         uint256 expectedFees = handler.expectedCollectedFees();
         uint256 tolerance = 10e18;
-        assertApproxEqAbs(
-            actualCollectedFees,
-            expectedFees,
-            tolerance,
-            "Collected fees mismatch exceeds tolerance"
-        );
+        assertApproxEqAbs(actualCollectedFees, expectedFees, tolerance, "Collected fees mismatch exceeds tolerance");
     }
 
     // Invariant: Outcome shares match expected total shares
@@ -108,11 +98,7 @@ contract LMSRInvariantTest is StdInvariant, Test {
         for (uint256 i = 0; i < outcomesLength; i++) {
             (, uint256 totalShares) = market.outcomes(i);
             uint256 expectedTotalShares = handler.expectedOutcomeTotalShares(i);
-            assertEq(
-                totalShares,
-                expectedTotalShares,
-                "Total shares mismatch for outcome"
-            );
+            assertEq(totalShares, expectedTotalShares, "Total shares mismatch for outcome");
         }
     }
 
@@ -126,37 +112,19 @@ contract LMSRInvariantTest is StdInvariant, Test {
 
             for (uint256 j = 0; j < actors.length; j++) {
                 address actor = actors[j];
-                uint256 userBalance = positions.balanceOf(
-                    actor,
-                    positions.getTokenId(marketId, i)
-                );
+                uint256 userBalance = positions.balanceOf(actor, positions.getTokenId(marketId, i));
                 userSharesSum += userBalance;
 
-                uint256 expectedBalance = handler.userExpectedBalances(
-                    actor,
-                    i
-                );
-                assertEq(
-                    userBalance,
-                    expectedBalance,
-                    "User share balance mismatch"
-                );
+                uint256 expectedBalance = handler.userExpectedBalances(actor, i);
+                assertEq(userBalance, expectedBalance, "User share balance mismatch");
             }
 
             // Compare total shares with sum of user shares
-            assertEq(
-                totalShares,
-                userSharesSum,
-                "Total shares do not match sum of user positions"
-            );
+            assertEq(totalShares, userSharesSum, "Total shares do not match sum of user positions");
 
             // Compare with expected total shares
             uint256 expectedTotalShares = handler.expectedOutcomeTotalShares(i);
-            assertEq(
-                totalShares,
-                expectedTotalShares,
-                "Total shares mismatch for outcome"
-            );
+            assertEq(totalShares, expectedTotalShares, "Total shares mismatch for outcome");
         }
     }
 
@@ -171,25 +139,17 @@ contract LMSRInvariantTest is StdInvariant, Test {
 
             // Check if MM funds are sufficient
             uint256 marketMakerFunds = market.marketMakerFunds();
-            assertTrue(
-                marketMakerFunds >= totalUnclaimedPayouts,
-                "Market Maker funds insufficient for payouts"
-            );
+            assertTrue(marketMakerFunds >= totalUnclaimedPayouts, "Market Maker funds insufficient for payouts");
         }
     }
 
     // Invariant: Contract token balance matches funds
     function invariant_tokenBalanceMatchesFunds() public view {
         uint256 contractTokenBalance = token.balanceOf(address(market));
-        uint256 expectedBalance = market.marketMakerFunds() +
-            market.collectedFees();
+        uint256 expectedBalance = market.marketMakerFunds() + market.collectedFees();
         //console.log('contractTokenBalance: ',contractTokenBalance);
         //console.log('expectedBalance: ', expectedBalance);
-        assertEq(
-            contractTokenBalance,
-            expectedBalance,
-            "Token balance mismatch"
-        );
+        assertEq(contractTokenBalance, expectedBalance, "Token balance mismatch");
     }
 
     // Invariant: User share balances are correct
@@ -200,18 +160,11 @@ contract LMSRInvariantTest is StdInvariant, Test {
         for (uint256 i = 0; i < actors.length; i++) {
             address user = actors[i];
             for (uint256 j = 0; j < outcomesLength; j++) {
-                uint256 userBalance = positions.balanceOf(
-                    user,
-                    positions.getTokenId(marketId, j)
-                );
+                uint256 userBalance = positions.balanceOf(user, positions.getTokenId(marketId, j));
                 //console.log('userBalance:',userBalance);
                 uint256 expectedBalance = handler.userExpectedBalances(user, j);
                 //console.log('expectedBalance:', expectedBalance);
-                assertEq(
-                    userBalance,
-                    expectedBalance,
-                    "User share balance mismatch"
-                );
+                assertEq(userBalance, expectedBalance, "User share balance mismatch");
             }
         }
     }

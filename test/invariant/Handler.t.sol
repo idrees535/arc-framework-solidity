@@ -10,13 +10,13 @@ import "forge-std/console.sol";
 import "forge-std/StdInvariant.sol";
 
 // Handler contract
-contract Handler is Test{
+contract Handler is Test {
     LMSRPredictionMarket public market;
     ERC20Token public token;
     PredictionMarketPositions public positions;
     address[] public actors;
 
-    uint256 public totalDeposits;    // Total tokens spent by users to buy shares
+    uint256 public totalDeposits; // Total tokens spent by users to buy shares
     uint256 public totalWithdrawals; // Total tokens received by users when selling shares
 
     // Expected values to track
@@ -38,11 +38,7 @@ contract Handler is Test{
     }
 
     // Function to buy shares
-    function simulateBuy(
-        uint256 outcomeIndex,
-        uint256 numSharesSeed,
-        uint256 actorSeed
-    ) public {
+    function simulateBuy(uint256 outcomeIndex, uint256 numSharesSeed, uint256 actorSeed) public {
         address actor = actors[actorSeed % actors.length];
         vm.startPrank(actor);
 
@@ -51,7 +47,6 @@ contract Handler is Test{
 
         // Estimate cost
         uint256 cost = market.estimateCost(outcomeIndex, numShares);
-
 
         uint256 feePercent = market.feePercent();
         uint256 feeAmount = (cost * feePercent) / 100;
@@ -71,7 +66,6 @@ contract Handler is Test{
         // Update user's expected balance
         userExpectedBalances[actor][outcomeIndex] += numShares;
 
-
         // Ensure actor has enough tokens
         uint256 actorBalance = token.balanceOf(actor);
         if (actorBalance < cost) {
@@ -89,11 +83,7 @@ contract Handler is Test{
     }
 
     // Function to sell shares
-    function simulateSell(
-        uint256 outcomeIndex,
-        uint256 numSharesSeed,
-        uint256 actorSeed
-    ) public {
+    function simulateSell(uint256 outcomeIndex, uint256 numSharesSeed, uint256 actorSeed) public {
         address actor = actors[actorSeed % actors.length];
         vm.startPrank(actor);
 
@@ -122,14 +112,13 @@ contract Handler is Test{
         expectedCollectedFees += feeRecipientAmount;
 
         // Update expected market maker funds (reduce by net payment and reinvested fee)
-       expectedMarketMakerFunds -= (payment - reinvestAmount);
+        expectedMarketMakerFunds -= (payment - reinvestAmount);
 
         // Update expected outcome total shares
         expectedOutcomeTotalShares[outcomeIndex] -= numShares;
 
         // Update user's expected balance
         userExpectedBalances[actor][outcomeIndex] -= numShares;
-
 
         // Call sellShares
         market.sellShares(outcomeIndex, numShares);
@@ -159,6 +148,4 @@ contract Handler is Test{
 
         vm.stopPrank();
     }
-
-
 }

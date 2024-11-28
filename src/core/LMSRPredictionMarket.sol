@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./PredictionMarketPositions.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 
-
 contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
 
@@ -25,21 +24,20 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     bool public marketClosed;
     bool public marketSettled;
     uint256 public winningOutcome;
-   
-    uint256 public marketMakerFunds =0;
+
+    uint256 public marketMakerFunds = 0;
     uint256 public feePercent;
     address public feeRecipient;
-    uint256 public collectedFees=0;
+    uint256 public collectedFees = 0;
     IERC20 public token;
     PredictionMarketPositions public positions;
     uint256 public marketId;
     string public title;
-    
+
     uint256 public sharesDecimals = 10;
     uint8 public tokenDecimals = 18;
-    uint256 public payoutPerShare = 1*(10**tokenDecimals);
+    uint256 public payoutPerShare = 1 * (10 ** tokenDecimals);
 
-    
     event SharesPurchased(address indexed user, uint256 outcomeIndex, uint256 numShares, uint256 cost);
     event SharesSold(address indexed user, uint256 outcomeIndex, uint256 numShares, uint256 payment);
     event MarketClosed();
@@ -59,9 +57,8 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         address _feeRecipient,
         address _tokenAddress,
         uint256 _initialFunds,
-        address _positionsAddress     
-    ) Ownable(msg.sender)
-    {
+        address _positionsAddress
+    ) Ownable(msg.sender) {
         require(_tokenAddress != address(0), "Invalid token address");
         require(_feeRecipient != address(0), "Invalid fee recipient address");
         require(_outcomes.length > 0, "At least one outcome required");
@@ -83,7 +80,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
 
         for (uint256 i = 0; i < _outcomes.length; i++) {
             outcomes.push(Outcome({name: _outcomes[i], totalShares: 0}));
-        }     
+        }
     }
 
     modifier onlyOracle() {
@@ -114,7 +111,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(!marketClosed, "Market is closed");
         require(outcomeIndex < outcomes.length, "Invalid outcome");
         require(numShares > 0, "Must buy at least one share");
-        
+
         // Calculate cost before purchase
         uint256[] memory qBefore = getQuantities();
         int128 costBefore = calculateCost(qBefore);
@@ -129,11 +126,11 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         // Calculate the cost difference
         int128 costDifference = ABDKMath64x64.sub(costAfter, costBefore);
         require(costDifference >= 0, "Cost difference is negative");
-        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10**sharesDecimals));
+        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10 ** sharesDecimals));
         uint256 cost = ABDKMath64x64.toUInt(scaledCostDifference) * 10 ** (tokenDecimals - sharesDecimals);
 
         // Calculate the fee
-        uint256 feeAmount = (cost * feePercent ) / (100);  
+        uint256 feeAmount = (cost * feePercent) / (100);
         uint256 reinvestAmount = feeAmount / 2;
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
         uint256 netCost = cost + feeAmount;
@@ -142,7 +139,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(token.transferFrom(msg.sender, address(this), netCost), "Token transfer failed");
 
         positions.mint(msg.sender, marketId, outcomeIndex, numShares);
-        
+
         // Update market maker's funds (cost + reinvested fee)
         marketMakerFunds += cost + reinvestAmount;
 
@@ -176,14 +173,14 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         uint256[] memory qAfter = getQuantities();
         int128 costAfter = calculateCost(qAfter);
 
-        // Calculate the payment difference 
+        // Calculate the payment difference
         int128 costDifference = ABDKMath64x64.sub(costBefore, costAfter);
         require(costDifference >= 0, "Cost difference is negative");
-        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10**sharesDecimals));
-        uint256 payment = ABDKMath64x64.toUInt(scaledCostDifference)* 10 ** (tokenDecimals - sharesDecimals);
-        
+        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10 ** sharesDecimals));
+        uint256 payment = ABDKMath64x64.toUInt(scaledCostDifference) * 10 ** (tokenDecimals - sharesDecimals);
+
         // Apply fees
-        uint256 feeAmount = (payment * feePercent ) / (100 );  
+        uint256 feeAmount = (payment * feePercent) / (100);
         uint256 reinvestAmount = feeAmount / 2;
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
         uint256 netPayment = payment - feeAmount;
@@ -204,10 +201,10 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         // Emit an event
         emit SharesSold(msg.sender, outcomeIndex, numShares, netPayment);
     }
-        
+
     function getPrice(uint256 outcomeIndex) public view returns (uint256) {
         require(outcomeIndex < outcomes.length, "Invalid outcome");
-    
+
         int128 numerator = ABDKMath64x64.exp(ABDKMath64x64.divu(outcomes[outcomeIndex].totalShares, b));
         int128 denominator = ABDKMath64x64.fromUInt(0);
         for (uint256 i = 0; i < outcomes.length; i++) {
@@ -215,7 +212,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
             denominator = ABDKMath64x64.add(denominator, expQiDivB);
         }
         int128 price = ABDKMath64x64.div(numerator, denominator);
-        return ABDKMath64x64.toUInt(ABDKMath64x64.mul(price, ABDKMath64x64.fromUInt(10**sharesDecimals)));
+        return ABDKMath64x64.toUInt(ABDKMath64x64.mul(price, ABDKMath64x64.fromUInt(10 ** sharesDecimals)));
     }
 
     function depositInitialFunds(uint256 amount) external onlyOwner {
@@ -235,7 +232,6 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(!marketSettled, "Market already settled");
         require(_winningOutcome < outcomes.length, "Invalid outcome");
         require(!marketSettled, "Market already settled");
-
 
         winningOutcome = _winningOutcome;
         marketSettled = true;
@@ -257,9 +253,9 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         uint256 totalWinningShares = outcomes[winningOutcome].totalShares;
         require(totalWinningShares >= userSharesAmount, "Invalid share amounts");
 
-       // Calculate payout: number of winning shares times payout per share ($1)
-        //uint256 payout = userSharesAmount * payoutPerShare; 
-        uint256 payout = (userSharesAmount * payoutPerShare);// / (10 ** sharesDecimals);
+        // Calculate payout: number of winning shares times payout per share ($1)
+        //uint256 payout = userSharesAmount * payoutPerShare;
+        uint256 payout = (userSharesAmount * payoutPerShare); // / (10 ** sharesDecimals);
 
         // Ensure the market maker has enough funds
         require(marketMakerFunds >= payout, "Insufficient market maker funds");
@@ -300,11 +296,11 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         // Simulate the purchase
         qBefore[outcomeIndex] += numShares;
         int128 costAfter = calculateCost(qBefore);
-        
+
         int128 costDifference = ABDKMath64x64.sub(costAfter, costBefore);
-        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10**sharesDecimals));
+        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10 ** sharesDecimals));
         uint256 cost = ABDKMath64x64.toUInt(scaledCostDifference) * 10 ** (tokenDecimals - sharesDecimals);
-        
+
         uint256 feeAmount = (cost * feePercent) / 100;
         uint256 netCost = cost + feeAmount;
 
@@ -321,11 +317,11 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         // Simulate the purchase
         qBefore[outcomeIndex] -= numShares;
         int128 costAfter = calculateCost(qBefore);
-        
-        int128 costDifference = ABDKMath64x64.sub(costBefore,costAfter);
-        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10**sharesDecimals));
+
+        int128 costDifference = ABDKMath64x64.sub(costBefore, costAfter);
+        int128 scaledCostDifference = ABDKMath64x64.mul(costDifference, ABDKMath64x64.fromUInt(10 ** sharesDecimals));
         uint256 payment = ABDKMath64x64.toUInt(scaledCostDifference) * 10 ** (tokenDecimals - sharesDecimals);
-        
+
         uint256 feeAmount = (payment * feePercent) / 100;
         uint256 netpayment = payment + feeAmount;
 
@@ -335,11 +331,10 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     function updateOracle(address _newOracle) external onlyOwner {
         require(_newOracle != address(0), "Invalid oracle address");
         oracle = _newOracle;
-    }    
-
+    }
 
     function pause() external onlyOwner {
-    _pause();
+        _pause();
     }
 
     function unpause() external onlyOwner {
@@ -351,9 +346,9 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         uint256 remainingFunds = marketMakerFunds;
         marketMakerFunds = 0;
         require(token.transfer(feeRecipient, remainingFunds), "Withdrawal failed");
-}
+    }
 
-  function getPositionId(uint256 _marketId, uint256 outcomeIndex) public pure returns (uint256) {
+    function getPositionId(uint256 _marketId, uint256 outcomeIndex) public pure returns (uint256) {
         return uint256(keccak256(abi.encode(_marketId, outcomeIndex)));
-    } 
+    }
 }

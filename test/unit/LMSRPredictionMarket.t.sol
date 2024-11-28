@@ -32,17 +32,17 @@ contract LMSRPredictionMarketTest is Test {
 
         // Deploy LMSRPredictionMarket with initial funds for liquidity
         market = new LMSRPredictionMarket(
-            1,                      // marketId
+            1, // marketId
             "Will it rain tomorrow?", // title
             outcomes,
-            owner,                  // oracle
-            1000,                   // b (liquidity parameter)
-            1 days,                 // duration
-            1,                      // feePercent
-            owner,                  // feeRecipient
-            address(token),         // tokenAddress
-            1000 * 1e18,            // initialFunds
-            address(positions)      // positionsAddress
+            owner, // oracle
+            1000, // b (liquidity parameter)
+            1 days, // duration
+            1, // feePercent
+            owner, // feeRecipient
+            address(token), // tokenAddress
+            1000 * 1e18, // initialFunds
+            address(positions) // positionsAddress
         );
     }
 
@@ -97,8 +97,8 @@ contract LMSRPredictionMarketTest is Test {
 
         // Attempt to end the market
         market.closeMarket();
-        bool isEnded=market.marketClosed();
-       
+        bool isEnded = market.marketClosed();
+
         assertTrue(isEnded, "Market should have ended after the duration.");
     }
 }

@@ -9,9 +9,9 @@ contract MarketFactory is Ownable {
     address[] public activeMarkets;
     PredictionMarketPositions public positions;
     // Mapping to store market titles
-    mapping(address => string) public marketTitles; 
+    mapping(address => string) public marketTitles;
 
-    event MarketCreated(address indexed marketAddress,string title);
+    event MarketCreated(address indexed marketAddress, string title);
     event MinterAuthorized(address indexed marketAddress);
 
     constructor(address _positionsAddress) Ownable(msg.sender) {
@@ -28,36 +28,36 @@ contract MarketFactory is Ownable {
         uint256 feePercent,
         address feeRecipient,
         address tokenAddress,
-        uint256 initialFunds 
+        uint256 initialFunds
     ) public {
         // Deploy the LMSRPredictionMarket contract
 
         LMSRPredictionMarket newMarket = new LMSRPredictionMarket(
             marketId,
-            title,            
+            title,
             outcomes,
             oracle,
             b,
             duration,
             feePercent,
-            feeRecipient,             
+            feeRecipient,
             tokenAddress,
-            initialFunds,        
-            address(positions)       
+            initialFunds,
+            address(positions)
         );
 
         // Add the new market to the list of active markets
         activeMarkets.push(address(newMarket));
         // Store the market title in the mapping
         marketTitles[address(newMarket)] = title;
-        emit MarketCreated(address(newMarket),title);
+        emit MarketCreated(address(newMarket), title);
 
         if (initialFunds > 0) {
             require(
                 IERC20(tokenAddress).transferFrom(msg.sender, address(newMarket), initialFunds),
                 "Initial fund transfer failed"
             );
-            }   
+        }
     }
 
     function getActiveMarkets() public view returns (address[] memory) {
