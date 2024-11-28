@@ -47,13 +47,13 @@ contract Handler is Test{
         vm.startPrank(actor);
 
         // Bound numShares to prevent overflows or excessively large values
-        uint256 numShares = bound(numSharesSeed, 1, 100);
+        uint256 numShares = bound(numSharesSeed, 1, type(uint256).max);
 
         // Estimate cost
         uint256 cost = market.estimateCost(outcomeIndex, numShares);
 
 
-         uint256 feePercent = market.feePercent();
+        uint256 feePercent = market.feePercent();
         uint256 feeAmount = (cost * feePercent) / 100;
         uint256 reinvestAmount = feeAmount / 2;
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
