@@ -35,10 +35,15 @@ contract Handler is Test {
         token = _token;
         positions = _positions;
         actors = _actors;
+        expectedMarketMakerFunds = market.initialFunds();
     }
 
     // Function to buy shares
-    function simulateBuy(uint256 outcomeIndex, uint256 numSharesSeed, uint256 actorSeed) public {
+    function simulateBuy(
+        uint256 outcomeIndex,
+        uint256 numSharesSeed,
+        uint256 actorSeed
+    ) public {
         address actor = actors[actorSeed % actors.length];
         vm.startPrank(actor);
 
@@ -83,7 +88,11 @@ contract Handler is Test {
     }
 
     // Function to sell shares
-    function simulateSell(uint256 outcomeIndex, uint256 numSharesSeed, uint256 actorSeed) public {
+    function simulateSell(
+        uint256 outcomeIndex,
+        uint256 numSharesSeed,
+        uint256 actorSeed
+    ) public {
         address actor = actors[actorSeed % actors.length];
         vm.startPrank(actor);
 
@@ -148,4 +157,5 @@ contract Handler is Test {
 
         vm.stopPrank();
     }
+    
 }

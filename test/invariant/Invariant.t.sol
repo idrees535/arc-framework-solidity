@@ -168,4 +168,91 @@ contract LMSRInvariantTest is StdInvariant, Test {
             }
         }
     }
+
+    // Invariant: Prices sum to 1
+    function invariant_pricesSumToOne() public view {
+        uint256 outcomesLength = market.getOutcomeCount();
+
+        int128 sumPrices = ABDKMath64x64.fromUInt(0);
+
+        int128 denominator = ABDKMath64x64.fromUInt(0);
+        for (uint256 i = 0; i < outcomesLength; i++) {
+            int128 expQiDivB = ABDKMath64x64.exp(
+                ABDKMath64x64.divu(market.getOutcomeTotalShares(i), market.b())
+            );
+            denominator = ABDKMath64x64.add(denominator, expQiDivB);
+        }
+
+        for (uint256 i = 0; i < outcomesLength; i++) {
+            int128 numerator = ABDKMath64x64.exp(
+                ABDKMath64x64.divu(market.getOutcomeTotalShares(i), market.b())
+            );
+            int128 price = ABDKMath64x64.div(numerator, denominator);
+            // Adjust scaling to match the contract's getPrice function
+        
+            sumPrices = ABDKMath64x64.add(sumPrices, price);
+        }
+
+        // Convert sumPrices to a uint with appropriate scaling
+        uint256 sumPricesUInt = ABDKMath64x64.toUInt(
+            ABDKMath64x64.mul(sumPrices, ABDKMath64x64.fromUInt(1e18))
+        );
+
+        // Allow a small tolerance for rounding errors
+        uint256 tolerance = 0; // Adjust as needed
+        assertApproxEqAbs(sumPricesUInt, 1e18, tolerance, "Prices do not sum to 1");
+    }
+
+    // Invariant: Market Maker Funds Consistency
+    function invariant_marketMakerFundsConsistency() public view {
+        uint256 actualMarketMakerFunds = market.marketMakerFunds();
+        uint256 expectedMarketMakerFunds = handler.expectedMarketMakerFunds();
+
+        // Allow a small tolerance for rounding errors
+        uint256 tolerance = 0; // Adjust as needed
+        assertApproxEqAbs(
+            actualMarketMakerFunds,
+            expectedMarketMakerFunds,
+            tolerance,
+            "Market maker funds mismatch"
+        );
+    }
+
+    // Invariant: Prices Reflect Quantities
+    function invariant_pricesReflectQuantities() public view {
+        uint256 outcomesLength = market.getOutcomeCount();
+
+        int128 denominator = ABDKMath64x64.fromUInt(0);
+        for (uint256 i = 0; i < outcomesLength; i++) {
+            int128 expQiDivB = ABDKMath64x64.exp(
+                ABDKMath64x64.divu(market.getOutcomeTotalShares(i), market.b())
+            );
+            denominator = ABDKMath64x64.add(denominator, expQiDivB);
+        }
+
+        for (uint256 i = 0; i < outcomesLength; i++) {
+            int128 numerator = ABDKMath64x64.exp(
+                ABDKMath64x64.divu(market.getOutcomeTotalShares(i), market.b())
+            );
+            int128 price = ABDKMath64x64.div(numerator, denominator);
+
+            uint256 expectedPrice = ABDKMath64x64.toUInt(
+                ABDKMath64x64.mul(price, ABDKMath64x64.fromUInt(10 ** market.sharesDecimals()))
+            );
+
+            uint256 actualPrice = market.getPrice(i);
+
+            // Allow a small tolerance for rounding errors
+            uint256 tolerance = 0; // Adjust as needed
+            assertApproxEqAbs(
+                actualPrice,
+                expectedPrice,
+                tolerance,
+                "Price does not reflect quantity"
+            );
+        }
+    }
+
+    
+
 }
