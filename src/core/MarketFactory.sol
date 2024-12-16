@@ -48,13 +48,20 @@ contract MarketFactory is Ownable {
 
         // Add the new market to the list of active markets
         activeMarkets.push(address(newMarket));
+
+        // Transfer ownership of the deployed market to the creator
+        newMarket.transferOwnership(msg.sender);
         // Store the market title in the mapping
         marketTitles[address(newMarket)] = title;
         emit MarketCreated(address(newMarket), title);
 
         if (initialFunds > 0) {
             require(
-                IERC20(tokenAddress).transferFrom(msg.sender, address(newMarket), initialFunds),
+                IERC20(tokenAddress).transferFrom(
+                    msg.sender,
+                    address(newMarket),
+                    initialFunds
+                ),
                 "Initial fund transfer failed"
             );
         }

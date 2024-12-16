@@ -20,8 +20,7 @@ contract LMSRInvariantTest is StdInvariant, Test {
     address[] public actors;
 
     address owner = address(this);
-    address alice = address(0x1);
-    address bob = address(0x2);
+
 
     string[] outcomes = ["Yes", "No"];
 
@@ -39,11 +38,6 @@ contract LMSRInvariantTest is StdInvariant, Test {
             token.transfer(actors[i], 1_000_000 ether);
         }
 
-        // Mint tokens to Alice for testing
-        vm.prank(owner);
-        token.transfer(alice, 500_000 * 1e18); // Allocate a larger amount to Alice
-        vm.prank(owner);
-        token.transfer(bob, 500_000 * 1e18);
 
         // Deploy PredictionMarketPositions contract
         positions = new PredictionMarketPositions("https://example.com/{id}.json", owner);
