@@ -55,7 +55,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     uint256 public constant SHARES_DECIMALS = 10; // Decimals for shares scaling
     uint256 public constant PERCENT_DENOMINATOR = 100; // Denominator for percentage calculations
     uint256 public constant FEE_REINVEST_PERCENT = 50; // Percentage of fees reinvested into the market maker
-    uint256 public constant MAX_SHARE_BOUGHT = 1000; // Maximum number of shares that can be bought
+    uint256 public constant MAX_SHARE_TRADE = 1000; // Maximum number of shares that can be bought
     uint256 public constant MAX_OUTCOME = 5; // Maximum number of outcomes allowed
 
     // ==============================
@@ -185,6 +185,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(!marketClosed, "Market is closed");
         require(outcomeIndex < outcomes.length, "Invalid outcome");
         require(numShares > 0, "Must buy at least one share");
+        require(numShares < MAX_SHARE_TRADE, "Share trade limit exceeded");
 
         // Calculate cost before purchase
         uint256[] memory qBefore = getQuantities();
@@ -208,7 +209,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
             unitScalingFactor;
 
         // Calculate the fee
-        uint256 feeAmount = (cost * feePercent) / PERCENT_DENOMINATOR;;
+        uint256 feeAmount = (cost * feePercent) / PERCENT_DENOMINATOR;
         uint256 reinvestAmount = (feeAmount * FEE_REINVEST_PERCENT) / PERCENT_DENOMINATOR;
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
         uint256 netCost = cost + feeAmount;
@@ -433,7 +434,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         uint256 cost = ABDKMath64x64.toUInt(scaledCostDifference) *
             unitScalingFactor;
 
-        uint256 feeAmount = (cost * feePercent) / PERCENT_DENOMINATOR;;
+        uint256 feeAmount = (cost * feePercent) / PERCENT_DENOMINATOR;
         uint256 netCost = cost + feeAmount;
 
         return netCost;
@@ -467,7 +468,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         uint256 payment = ABDKMath64x64.toUInt(scaledCostDifference) *
             unitScalingFactor;
 
-        uint256 feeAmount = (payment * feePercent) / PERCENT_DENOMINATOR;;
+        uint256 feeAmount = (payment * feePercent) / PERCENT_DENOMINATOR;
         uint256 netpayment = payment + feeAmount;
 
         return netpayment;

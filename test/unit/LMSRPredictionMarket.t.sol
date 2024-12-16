@@ -44,6 +44,10 @@ contract LMSRPredictionMarketTest is Test {
             1000 * 1e18, // initialFunds
             address(positions) // positionsAddress
         );
+
+        // Grant roles to LMSRPredictionMarket contract
+    positions.grantRole(positions.MINTER_ROLE(), address(market));
+    positions.grantRole(positions.BURNER_ROLE(), address(market));
     }
 
     function testBuyShares() public {

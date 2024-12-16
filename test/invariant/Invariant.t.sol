@@ -57,6 +57,9 @@ contract LMSRInvariantTest is StdInvariant, Test {
             address(positions) // positionsAddress
         );
 
+        // Grant roles to LMSRPredictionMarket contract
+        positions.grantRole(positions.MINTER_ROLE(), address(market));
+        positions.grantRole(positions.BURNER_ROLE(), address(market));
         //targetContract(address(market));
         //console.log('Market Token balance Before: ',token.balanceOf(address(market)));
         //console.log('Market Funds Before: ',market.marketMakerFunds());
@@ -231,7 +234,7 @@ contract LMSRInvariantTest is StdInvariant, Test {
             int128 price = ABDKMath64x64.div(numerator, denominator);
 
             uint256 expectedPrice = ABDKMath64x64.toUInt(
-                ABDKMath64x64.mul(price, ABDKMath64x64.fromUInt(10 ** market.sharesDecimals()))
+                ABDKMath64x64.mul(price, ABDKMath64x64.fromUInt(10 ** market.SHARES_DECIMALS()))
             );
 
             uint256 actualPrice = market.getPrice(i);
