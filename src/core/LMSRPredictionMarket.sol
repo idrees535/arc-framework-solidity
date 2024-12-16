@@ -40,7 +40,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     uint256 public collectedFees = 0;
     PredictionMarketPositions public positions;
 
-     // ==============================
+    // ==============================
     // IMMUTABLE VARIABLES
     // ==============================
 
@@ -138,12 +138,13 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
             "Liquidity parameter 'b' must be greater than minimum"
         );
         // Enforce the condition: initialFunds > b * ln(num_outcomes)
-    
+
         require(
-        _initialFunds >= calculateMinimumInitialFunds(_b, _outcomes.length) * (10 ** IERC20Metadata(_tokenAddress).decimals()),
-        "Initial funds must exceed b * ln(num_outcomes)"
-    );
-        
+            _initialFunds >=
+                calculateMinimumInitialFunds(_b, _outcomes.length) *
+                    (10 ** IERC20Metadata(_tokenAddress).decimals()),
+            "Initial funds must exceed b * ln(num_outcomes)"
+        );
 
         marketId = _marketId;
         title = _title;
@@ -172,8 +173,6 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         }
 
         payoutPerShare = 1 * (10 ** tokenDecimals);
-
-        
 
         for (uint256 i = 0; i < _outcomes.length; i++) {
             outcomes.push(Outcome({name: _outcomes[i], totalShares: 0}));
@@ -597,9 +596,15 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     ) public view returns (uint256) {
         require(numOutcomes > 1, "At least two outcomes required");
         // Use ABDKMath64x64 for precision logarithmic calculations
-        int128 lnOutcomes = ABDKMath64x64.ln(ABDKMath64x64.fromUInt(numOutcomes));
+        int128 lnOutcomes = ABDKMath64x64.ln(
+            ABDKMath64x64.fromUInt(numOutcomes)
+        );
         return ABDKMath64x64.mulu(lnOutcomes, b);
     }
+
+    // ==============================
+    // Gettor FUNCTIONS
+    // ==============================
 
     function getPositionId(
         uint256 _marketId,
