@@ -140,6 +140,10 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         tokenDecimals = IERC20Metadata(_tokenAddress).decimals();
         positions = PredictionMarketPositions(_positionsAddress);
 
+        // Grant roles to this contract
+        //positions.grantRole(positions.MINTER_ROLE(), address(this));
+        //positions.grantRole(positions.BURNER_ROLE(), address(this));
+
         // Adjust scaling factor dynamically
         if (tokenDecimals > SHARES_DECIMALS) {
             unitScalingFactor = 10 ** (tokenDecimals - SHARES_DECIMALS);
