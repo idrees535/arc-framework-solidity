@@ -28,35 +28,43 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     }
 
     Outcome[] public outcomes;
-    uint256 public b; // LMSR liquidity parameter
-    address public oracle;
     uint256 public marketEndTime;
     bool public marketClosed;
     bool public marketSettled;
     uint256 public winningOutcome;
+    string public title;
+    address public oracle;
 
     uint256 public marketMakerFunds = 0;
     uint256 public initialFunds = 0;
-    uint256 public feePercent;
-    address public feeRecipient;
     uint256 public collectedFees = 0;
-    IERC20 public token;
     PredictionMarketPositions public positions;
-    uint256 public marketId;
-    string public title;
 
-    uint8 public tokenDecimals;
-    uint256 public payoutPerShare;
-    uint256 public unitScalingFactor;
+     // ==============================
+    // IMMUTABLE VARIABLES
+    // ==============================
+
+    uint256 public immutable b; // LMSR liquidity parameter
+    IERC20 public immutable token;
+    uint256 public immutable marketId;
+    uint256 public immutable feePercent;
+    address public immutable feeRecipient;
+    uint8 public immutable tokenDecimals;
+    uint256 public immutable payoutPerShare;
+    uint256 public immutable unitScalingFactor;
+    uint256 public immutable i_numOutcomes;
 
     // ==============================
     // CONSTANTS
     // ==============================
+
     uint256 public constant SHARES_DECIMALS = 10; // Decimals for shares scaling
     uint256 public constant PERCENT_DENOMINATOR = 100; // Denominator for percentage calculations
     uint256 public constant FEE_REINVEST_PERCENT = 50; // Percentage of fees reinvested into the market maker
     uint256 public constant MAX_SHARE_TRADE = 1000; // Maximum number of shares that can be bought
     uint256 public constant MAX_OUTCOME = 5; // Maximum number of outcomes allowed
+    uint256 public constant MIN_LIQUIDITY_PARAM = 1; // Minimum liquidity parameter
+    uint256 public constant MAX_LIQUIDITY_PARAM = 0x7FFFFFFFFFFFFFFF; // Maximum liquidity parameter
 
     // ==============================
     // EVENTS
@@ -119,12 +127,23 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(_duration > 0, "Duration must be positive");
         require(
             _outcomes.length > 0 && _outcomes.length <= MAX_OUTCOME,
-            "At least one outcome required"
+            "Invalid number of outcomes"
         );
         require(
-            _b <= 0x7FFFFFFFFFFFFFFF,
-            "Liquidity parameter 'b' exceeds the limit of 2^64"
+            _b <= MAX_LIQUIDITY_PARAM,
+            "Liquidity parameter 'b' exceeds the limit maximum"
         );
+        require(
+            _b >= MIN_LIQUIDITY_PARAM,
+            "Liquidity parameter 'b' must be greater than minimum"
+        );
+        // Enforce the condition: initialFunds > b * ln(num_outcomes)
+    
+        require(
+        _initialFunds >= calculateMinimumInitialFunds(_b, _outcomes.length) * (10 ** IERC20Metadata(_tokenAddress).decimals()),
+        "Initial funds must exceed b * ln(num_outcomes)"
+    );
+        
 
         marketId = _marketId;
         title = _title;
@@ -136,6 +155,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         feePercent = _feePercent;
         feeRecipient = _feeRecipient;
         token = IERC20(_tokenAddress);
+        i_numOutcomes = _outcomes.length;
         // Get token decimals dynamically
         tokenDecimals = IERC20Metadata(_tokenAddress).decimals();
         positions = PredictionMarketPositions(_positionsAddress);
@@ -153,8 +173,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
 
         payoutPerShare = 1 * (10 ** tokenDecimals);
 
-        marketMakerFunds = _initialFunds;
-        initialFunds = _initialFunds;
+        
 
         for (uint256 i = 0; i < _outcomes.length; i++) {
             outcomes.push(Outcome({name: _outcomes[i], totalShares: 0}));
@@ -214,7 +233,8 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
 
         // Calculate the fee
         uint256 feeAmount = (cost * feePercent) / PERCENT_DENOMINATOR;
-        uint256 reinvestAmount = (feeAmount * FEE_REINVEST_PERCENT) / PERCENT_DENOMINATOR;
+        uint256 reinvestAmount = (feeAmount * FEE_REINVEST_PERCENT) /
+            PERCENT_DENOMINATOR;
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
         uint256 netCost = cost + feeAmount;
 
@@ -282,7 +302,8 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
 
         // Apply fees
         uint256 feeAmount = (payment * feePercent) / PERCENT_DENOMINATOR;
-        uint256 reinvestAmount = (feeAmount * FEE_REINVEST_PERCENT) / PERCENT_DENOMINATOR; 
+        uint256 reinvestAmount = (feeAmount * FEE_REINVEST_PERCENT) /
+            PERCENT_DENOMINATOR;
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
         uint256 netPayment = payment - feeAmount;
 
@@ -564,6 +585,21 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
      * @param outcomeIndex The index of the outcome.
      * @return The unique position ID.
      */
+    /**
+     * @dev Calculates the minimum initial funds required: b * ln(num_outcomes)
+     * @param b The LMSR liquidity parameter
+     * @param numOutcomes The number of outcomes in the market
+     * @return The minimum initial funds required
+     */
+    function calculateMinimumInitialFunds(
+        uint256 b,
+        uint256 numOutcomes
+    ) public view returns (uint256) {
+        require(numOutcomes > 1, "At least two outcomes required");
+        // Use ABDKMath64x64 for precision logarithmic calculations
+        int128 lnOutcomes = ABDKMath64x64.ln(ABDKMath64x64.fromUInt(numOutcomes));
+        return ABDKMath64x64.mulu(lnOutcomes, b);
+    }
 
     function getPositionId(
         uint256 _marketId,

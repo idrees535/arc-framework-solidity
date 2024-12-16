@@ -11,8 +11,15 @@ contract MarketFactory is Ownable {
     // Mapping to store market titles
     mapping(address => string) public marketTitles;
 
-    event MarketCreated(address indexed marketAddress, string title);
     event MinterAuthorized(address indexed marketAddress);
+    event MarketCreated(address indexed marketAddress, string title);
+    event RolesGranted(address indexed marketAddress);
+    event FundsTransferred(address indexed marketAddress, uint256 amount);
+
+    /**
+     * @dev Constructor to initialize the factory with the ERC-1155 positions contract
+     * @param _positionsAddress Address of the deployed PredictionMarketPositions contract
+     */
 
     constructor(address _positionsAddress) Ownable(msg.sender) {
         positions = PredictionMarketPositions(_positionsAddress);
@@ -49,11 +56,13 @@ contract MarketFactory is Ownable {
         // Add the new market to the list of active markets
         activeMarkets.push(address(newMarket));
 
-        // Transfer ownership of the deployed market to the creator
-        newMarket.transferOwnership(msg.sender);
-        // Store the market title in the mapping
         marketTitles[address(newMarket)] = title;
         emit MarketCreated(address(newMarket), title);
+
+        // Grant roles to this contract
+        positions.grantRole(positions.MINTER_ROLE(), address(this));
+        positions.grantRole(positions.BURNER_ROLE(), address(this));
+        emit RolesGranted(address(newMarket));
 
         if (initialFunds > 0) {
             require(
@@ -65,8 +74,13 @@ contract MarketFactory is Ownable {
                 "Initial fund transfer failed"
             );
         }
+    // Transfer ownership of the deployed market to the creator
+        newMarket.transferOwnership(msg.sender);
     }
 
+    /**
+     * @dev Returns the list of all active markets
+     */
     function getActiveMarkets() public view returns (address[] memory) {
         return activeMarkets;
     }

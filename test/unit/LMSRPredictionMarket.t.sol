@@ -16,6 +16,7 @@ contract LMSRPredictionMarketTest is Test {
     address alice = address(0x1);
     address bob = address(0x2);
     string[] outcomes = ["Yes", "No"];
+    uint256 initialFunds = 694e18;
 
     function setUp() public {
         // Deploy test ERC20 token with an initial supply
@@ -29,7 +30,6 @@ contract LMSRPredictionMarketTest is Test {
 
         // Deploy PredictionMarketPositions contract
         positions = new PredictionMarketPositions("https://example.com/{id}.json", owner);
-
         // Deploy LMSRPredictionMarket with initial funds for liquidity
         market = new LMSRPredictionMarket(
             1, // marketId
@@ -41,13 +41,19 @@ contract LMSRPredictionMarketTest is Test {
             1, // feePercent
             owner, // feeRecipient
             address(token), // tokenAddress
-            1000 * 1e18, // initialFunds
+            initialFunds, // initialFunds
             address(positions) // positionsAddress
         );
+
+        
 
         // Grant roles to LMSRPredictionMarket contract
     positions.grantRole(positions.MINTER_ROLE(), address(market));
     positions.grantRole(positions.BURNER_ROLE(), address(market));
+    console.log("Market address: ", address(market));
+    console.log ("Initial funds allocated: ",initialFunds );
+    
+    console.log("minimum initial funds calcualted: ", market.calculateMinimumInitialFunds(1000, 2));
     }
 
     function testBuyShares() public {
