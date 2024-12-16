@@ -63,8 +63,8 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     uint256 public constant FEE_REINVEST_PERCENT = 50; // Percentage of fees reinvested into the market maker
     uint256 public constant MAX_SHARE_TRADE = 1000; // Maximum number of shares that can be bought
     uint256 public constant MAX_OUTCOME = 5; // Maximum number of outcomes allowed
-    uint256 public constant MIN_LIQUIDITY_PARAM = 1; // Minimum liquidity parameter
-    uint256 public constant MAX_LIQUIDITY_PARAM = 0x7FFFFFFFFFFFFFFF; // Maximum liquidity parameter
+    uint256 public constant MIN_LIQUIDITY_PARAM = 100; // Minimum liquidity parameter
+    uint256 public constant MAX_LIQUIDITY_PARAM = 10000; // Maximum liquidity parameter
 
     // ==============================
     // EVENTS
@@ -579,33 +579,34 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Gets the unique position ID for a user in a specific outcome.
-     * @param _marketId The ID of the market.
-     * @param outcomeIndex The index of the outcome.
-     * @return The unique position ID.
-     */
-    /**
      * @dev Calculates the minimum initial funds required: b * ln(num_outcomes)
-     * @param b The LMSR liquidity parameter
+     * @param _b The LMSR liquidity parameter
      * @param numOutcomes The number of outcomes in the market
      * @return The minimum initial funds required
      */
     function calculateMinimumInitialFunds(
-        uint256 b,
+        uint256 _b,
         uint256 numOutcomes
-    ) public view returns (uint256) {
+    ) public pure returns (uint256) {
         require(numOutcomes > 1, "At least two outcomes required");
         // Use ABDKMath64x64 for precision logarithmic calculations
         int128 lnOutcomes = ABDKMath64x64.ln(
             ABDKMath64x64.fromUInt(numOutcomes)
         );
-        return ABDKMath64x64.mulu(lnOutcomes, b);
+        return ABDKMath64x64.mulu(lnOutcomes, _b);
     }
 
     // ==============================
     // Gettor FUNCTIONS
     // ==============================
 
+    
+    /**
+     * @notice Gets the unique position ID for a user in a specific outcome.
+     * @param _marketId The ID of the market.
+     * @param outcomeIndex The index of the outcome.
+     * @return The unique position ID.
+     */
     function getPositionId(
         uint256 _marketId,
         uint256 outcomeIndex
