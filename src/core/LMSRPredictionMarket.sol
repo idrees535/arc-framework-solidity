@@ -22,7 +22,6 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     // State variables
     // ==============================
 
-
     struct Outcome {
         string name;
         uint256 totalShares; // Quantity q_i
@@ -46,7 +45,6 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     uint256 public marketId;
     string public title;
 
-    
     uint8 public tokenDecimals;
     uint256 public payoutPerShare;
     uint256 public unitScalingFactor;
@@ -54,10 +52,11 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     // ==============================
     // CONSTANTS
     // ==============================
-    uint256 public sharesDecimals = 10;
-    //As 50% of fee the fee is reinvested in the market maker, so decalre that 50% as a constant
-    uint256 public REINVEST_FEE_PERCENT = 50;
-
+    uint256 public constant SHARES_DECIMALS = 10; // Decimals for shares scaling
+    uint256 public constant PERCENT_DENOMINATOR = 100; // Denominator for percentage calculations
+    uint256 public constant FEE_REINVEST_PERCENT = 50; // Percentage of fees reinvested into the market maker
+    uint256 public constant MAX_SHARE_BOUGHT = 1000; // Maximum number of shares that can be bought
+    uint256 public constant MAX_OUTCOME = 5; // Maximum number of outcomes allowed
 
     // ==============================
     // EVENTS
@@ -119,7 +118,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(_b > 0, "Liquidity parameter b must be greater than zero");
         require(_duration > 0, "Duration must be positive");
         require(
-            _outcomes.length > 0 && _outcomes.length <= 5,
+            _outcomes.length > 0 && _outcomes.length <= MAX_OUTCOME,
             "At least one outcome required"
         );
         require(
@@ -142,10 +141,10 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         positions = PredictionMarketPositions(_positionsAddress);
 
         // Adjust scaling factor dynamically
-        if (tokenDecimals > sharesDecimals) {
-            unitScalingFactor = 10 ** (tokenDecimals - sharesDecimals);
+        if (tokenDecimals > SHARES_DECIMALS) {
+            unitScalingFactor = 10 ** (tokenDecimals - SHARES_DECIMALS);
         } else {
-            unitScalingFactor = 10 ** (sharesDecimals - tokenDecimals);
+            unitScalingFactor = 10 ** (SHARES_DECIMALS - tokenDecimals);
         }
 
         payoutPerShare = 1 * (10 ** tokenDecimals);
@@ -162,13 +161,10 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     // MODIFIERS
     // ==============================
 
-
     modifier onlyOracle() {
         require(msg.sender == oracle, "Not authorized");
         _;
     }
-
-    
 
     // ==============================
     // FUNCTIONS
@@ -206,14 +202,14 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(costDifference >= 0, "Cost difference is negative");
         int128 scaledCostDifference = ABDKMath64x64.mul(
             costDifference,
-            ABDKMath64x64.fromUInt(10 ** sharesDecimals)
+            ABDKMath64x64.fromUInt(10 ** SHARES_DECIMALS)
         );
         uint256 cost = ABDKMath64x64.toUInt(scaledCostDifference) *
             unitScalingFactor;
 
         // Calculate the fee
-        uint256 feeAmount = (cost * feePercent) / (100);
-        uint256 reinvestAmount = feeAmount / 2;
+        uint256 feeAmount = (cost * feePercent) / PERCENT_DENOMINATOR;;
+        uint256 reinvestAmount = (feeAmount * FEE_REINVEST_PERCENT) / PERCENT_DENOMINATOR;
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
         uint256 netCost = cost + feeAmount;
 
@@ -274,14 +270,14 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         require(costDifference >= 0, "Cost difference is negative");
         int128 scaledCostDifference = ABDKMath64x64.mul(
             costDifference,
-            ABDKMath64x64.fromUInt(10 ** sharesDecimals)
+            ABDKMath64x64.fromUInt(10 ** SHARES_DECIMALS)
         );
         uint256 payment = ABDKMath64x64.toUInt(scaledCostDifference) *
             unitScalingFactor;
 
         // Apply fees
-        uint256 feeAmount = (payment * feePercent) / (100);
-        uint256 reinvestAmount = feeAmount / 2;
+        uint256 feeAmount = (payment * feePercent) / PERCENT_DENOMINATOR;
+        uint256 reinvestAmount = (feeAmount * FEE_REINVEST_PERCENT) / PERCENT_DENOMINATOR; 
         uint256 feeRecipientAmount = feeAmount - reinvestAmount;
         uint256 netPayment = payment - feeAmount;
 
@@ -377,7 +373,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
 
         // Calculate payout: number of winning shares times payout per share ($1)
         //uint256 payout = userSharesAmount * payoutPerShare;
-        uint256 payout = (userSharesAmount * payoutPerShare); // / (10 ** sharesDecimals);
+        uint256 payout = (userSharesAmount * payoutPerShare); // / (10 ** SHARES_DECIMALS);
 
         // Ensure the market maker has enough funds
         require(marketMakerFunds >= payout, "Insufficient market maker funds");
@@ -432,12 +428,12 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         int128 costDifference = ABDKMath64x64.sub(costAfter, costBefore);
         int128 scaledCostDifference = ABDKMath64x64.mul(
             costDifference,
-            ABDKMath64x64.fromUInt(10 ** sharesDecimals)
+            ABDKMath64x64.fromUInt(10 ** SHARES_DECIMALS)
         );
         uint256 cost = ABDKMath64x64.toUInt(scaledCostDifference) *
             unitScalingFactor;
 
-        uint256 feeAmount = (cost * feePercent) / 100;
+        uint256 feeAmount = (cost * feePercent) / PERCENT_DENOMINATOR;;
         uint256 netCost = cost + feeAmount;
 
         return netCost;
@@ -466,12 +462,12 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         int128 costDifference = ABDKMath64x64.sub(costBefore, costAfter);
         int128 scaledCostDifference = ABDKMath64x64.mul(
             costDifference,
-            ABDKMath64x64.fromUInt(10 ** sharesDecimals)
+            ABDKMath64x64.fromUInt(10 ** SHARES_DECIMALS)
         );
         uint256 payment = ABDKMath64x64.toUInt(scaledCostDifference) *
             unitScalingFactor;
 
-        uint256 feeAmount = (payment * feePercent) / 100;
+        uint256 feeAmount = (payment * feePercent) / PERCENT_DENOMINATOR;;
         uint256 netpayment = payment + feeAmount;
 
         return netpayment;
@@ -610,9 +606,9 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     /**
      * @notice Gets the current price of shares for a specific outcome.
      * @param outcomeIndex The index of the selected outcome.
-     * @return The price of a single share (scaled to match sharesDecimals precision).
+     * @return The price of a single share (scaled to match SHARES_DECIMALS precision).
      * @dev Uses the LMSR formula to calculate the price based on current share quantities.
-     * The price is normalized to the precision defined by sharesDecimals.
+     * The price is normalized to the precision defined by SHARES_DECIMALS.
      */
 
     function getPrice(uint256 outcomeIndex) public view returns (uint256) {
@@ -633,7 +629,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
             ABDKMath64x64.toUInt(
                 ABDKMath64x64.mul(
                     price,
-                    ABDKMath64x64.fromUInt(10 ** sharesDecimals)
+                    ABDKMath64x64.fromUInt(10 ** SHARES_DECIMALS)
                 )
             );
     }
