@@ -58,10 +58,10 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     // CONSTANTS
     // ==============================
 
-    uint256 public constant SHARES_DECIMALS = 10; // Decimals for shares scaling
+    uint256 public constant SHARES_DECIMALS = 0; // Decimals for shares scaling
     uint256 public constant PERCENT_DENOMINATOR = 100; // Denominator for percentage calculations
     uint256 public constant FEE_REINVEST_PERCENT = 50; // Percentage of fees reinvested into the market maker
-    uint256 public constant MAX_SHARE_TRADE = 1000; // Maximum number of shares that can be bought
+    uint256 public constant MAX_SHARE_TRADE = 10000; // Maximum number of shares that can be bought
     uint256 public constant MAX_OUTCOME = 5; // Maximum number of outcomes allowed
     uint256 public constant MIN_LIQUIDITY_PARAM = 100; // Minimum liquidity parameter
     uint256 public constant MAX_LIQUIDITY_PARAM = 10000; // Maximum liquidity parameter
@@ -398,6 +398,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
 
         // Calculate payout: number of winning shares times payout per share ($1)
         //uint256 payout = userSharesAmount * payoutPerShare;
+        //Aren't we missing the scaling factor here? as we should divine number of shares by 10^share_decimals
         uint256 payout = (userSharesAmount * payoutPerShare); // / (10 ** SHARES_DECIMALS);
 
         // Ensure the market maker has enough funds
@@ -514,7 +515,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
      * Transfers all remaining funds in the market maker to the fee recipient.
      * Emits no specific event; uses the token transfer to signal success.
      */
-
+    // shouldn't this be restricted to owner can withdrawa only all users have claimed their payouts, otherwise the market maker can withdraw all the funds before the users claim their payouts
     function withdrawRemainingFunds() external onlyOwner {
         require(marketSettled, "Market not settled yet");
         uint256 remainingFunds = marketMakerFunds;
