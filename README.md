@@ -1,104 +1,129 @@
-# System Architecture and Components
 
-Statia leverages a Logarithmic Market Scoring Rule (LMSR) model to dynamically adjust the costs and odds based on user participation, creating a responsive, self-regulating market. Key components of Statia include:
+# ARC Framework Solidity Implementation
 
-- **Prediction Market Module**: Manages market creation, share trading, and settlement using the LMSR cost function.
-- **Oracles**: Trusted entities that verify event outcomes and ensure data accuracy.
+This repository contains the **Logarithmic Market Scoring Rule (LMSR)** implementation in Solidity, designed to provide dynamic pricing, inherent liquidity, and risk management for decentralized coverage pools.
 
-## Prediction Market Module
+## Prerequisites
 
-### LMSR Cost Function
+Before you begin, ensure you have the following installed:
 
-In Statia’s LMSR-based prediction market, the cost function, \(C(q)\), determines the price for purchasing shares in a particular outcome and adjusts as more bets are placed. This function ensures liquidity and dynamic pricing within the market.
+- [Foundry](https://book.getfoundry.sh/getting-started/installation.html): Foundry is a blazing-fast development framework for Ethereum.
+- Node.js and Yarn: Required for dependency management.
+- A configured Ethereum wallet (e.g., MetaMask) and access to a testnet like Goerli.
 
-The cost function for LMSR is defined as:
+### Install Foundry
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+```
 
-\[ 
-C(q) = b \cdot \ln \left( \sum_{i=1}^{n} e^{\frac{q_i}{b}} \right)
-\]
+## Setting Up the Project
 
-Where:
-- \(C(q)\): Total cost required to reach a state \(q\), where \(q_i\) is the total amount bet on outcome \(i\).
-- \(b\): Liquidity parameter, which controls the sensitivity of prices to new bets (higher \(b\) means greater liquidity and less responsive odds).
-- \(n\): Number of outcomes.
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/your-repo/lmsr-foundry.git
+   cd lmsr-foundry
+   ```
 
-#### Key Features
+2. **Install Dependencies**:
+   Install the required dependencies via `forge` and `yarn`:
+   ```bash
+   forge install
+   yarn install
+   ```
 
-- **Dynamic Pricing**: The cost of betting increases with the total amount staked on a particular outcome, ensuring that odds for heavily favored outcomes adjust to discourage overloading.
-- **Market Liquidity**: Implicit liquidity is provided through the cost function without external liquidity providers.
-- **Initial Liquidity (Worst-Case Loss)**: To guarantee that the market can cover potential payouts, the worst-case loss is calculated as:
+3. **Compile the Contracts**:
+   Build the Solidity contracts to ensure everything compiles correctly.
+   ```bash
+   forge build
+   ```
 
-\[
-L_{\text{max}} = b \cdot \ln(n)
-\]
+4. **Run Tests**:
+   Execute the test suite to verify contract functionality.
+   ```bash
+   forge test
+   ```
 
-Where \(n\) is the number of outcomes.
+5. **Configure Network Settings**:
+   Update the `.env` file with your private key and desired network settings:
+   ```bash
+   PRIVATE_KEY=<YOUR_PRIVATE_KEY>
+   RPC_URL=https://goerli.infura.io/v3/<YOUR_INFURA_PROJECT_ID>
+   ```
 
-- **Dynamic Odds**: The odds for each outcome \(i\) are calculated based on the relative stakes:
+6. **Deploy the Contracts**:
+   Deploy the LMSR contract to a specified network using Foundry's deployment scripts:
+   ```bash
+   forge script script/DeployLMSR.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
+   ```
 
-\[
-p_i = \frac{e^{\frac{q_i}{b}}}{\sum_{j=1}^{n} e^{\frac{q_j}{b}}}
-\]
+7. **Verify Deployment**:
+   Verify the contract address using the output from the deployment script or Etherscan.
 
-### Share Trading
+## Project Structure
 
-When a user buys shares in an outcome, the cost of shares is calculated as the difference between the current and previous states of the cost function.
+- `src`: Contains the Solidity LMSR contract implementations.
+- `script`: Deployment and setup scripts.
+- `test`: Unit tests for the LMSR contract.
+- `.env`: Configuration for private key and network RPC.
 
-\[
-\text{Cost} = C(q_{\text{new}}) - C(q_{\text{current}})
-\]
+## LMSR Features
 
-Where:
-- \(q_{\text{current}}\): Current total stake in each outcome.
-- \(q_{\text{new}}\): New stake after the user places a bet.
+1. **Dynamic Pricing**: Implements the LMSR cost function for share price adjustments.
+2. **Inherent Liquidity**: Ensures markets remain liquid via the `b` parameter.
+3. **Worst-Case Loss Coverage**: Calculates maximum potential loss to secure payouts.
+4. **Share Trading**: Facilitates buying and selling of shares with dynamically calculated odds.
+5. **Oracle Integration**: Supports oracle mechanisms for event resolution.
 
-The number of shares received by a user when they place a bet of amount \(\Delta C\) on outcome \(i\) is given by:
+## Example Commands
 
-\[
-s = \frac{\Delta C}{p_i}
-\]
+- **Compile Contracts**:
+   ```bash
+   forge build
+   ```
 
-Where \(p_i\) is the price per share for outcome \(i\), derived from the LMSR function.
+- **Run Tests**:
+   ```bash
+   forge test
+   ```
 
-#### Key Features
+- **Deploy Contracts**:
+   ```bash
+   forge script script/DeployLMSR.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
+   ```
 
-- **Impact of Bet Placement**: As more bets are placed on an outcome, \(p_i\) adjusts to reflect market sentiment, discouraging disproportionate betting on a single outcome.
-- **Share Distribution**: Users placing a bet \(\Delta C\) on outcome \(i\) receive tokens based on current market odds.
-- **Market Pricing Feedback**: Each bet placed adjusts costs for future bets and updates odds in real-time.
-- **Redemption for Winning Outcome**: Upon event conclusion, holders of winning outcome tokens can redeem them based on the stakes.
+- **Interact with Contracts**:
+   Use scripts or a front-end to interact with the deployed LMSR contract for creating pools, placing bets, and resolving events.
 
-### Market Settlement
+## Deployment Script Example
 
-After the event concludes and an outcome is verified by oracles, users holding winning shares can redeem their tokens for payouts. 
+Below is an example of a deployment script (`script/DeployLMSR.s.sol`):
 
-**Payout Calculation**: Each share of the winning outcome can be redeemed at a fixed payout of 1 unit.
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
 
-\[
-P_{\text{user}} = s_{\text{win}} \times (1 \text{ USD})
-\]
+import "forge-std/Script.sol";
+import "../src/LMSR.sol";
 
-Where \(s_{\text{win}}\) is the number of shares the user holds in the winning outcome.
+contract DeployLMSR is Script {
+    function run() external {
+        vm.startBroadcast();
+        
+        // Deploy LMSR Contract
+        LMSR lmsr = new LMSR();
+        console.log("LMSR deployed at:", address(lmsr));
+        
+        vm.stopBroadcast();
+    }
+}
+```
 
-## Oracles
+## Contributing
 
-Oracles are critical components responsible for determining the outcome of prediction markets. They are whitelisted entities specified at market creation to verify and submit outcomes securely.
+Contributions are welcome! Please fork the repository, make your changes, and open a pull request. Refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for more details.
 
-### Oracle Process
+## License
 
-1. **Event Monitoring**: The oracle monitors the event associated with the prediction market.
-2. **Outcome Determination**: The oracle determines the correct outcome based on verifiable data.
-3. **Outcome Submission**: The oracle submits the outcome to the smart contract using its whitelisted address.
-4. **Market Settlement**: Upon receiving the outcome, the smart contract settles the market, allowing participants to redeem their winnings.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
 
-### Oracle Implementation
-
-When creating a market, the creator specifies the oracle's address. The oracle can be:
-
-- **An Individual Wallet**: A single entity controlling a wallet address.
-- **A Multisignature Wallet (Multisig)**: A group of entities requiring multiple approvals to submit outcomes.
-- **A Smart Contract**: An autonomous contract determining outcomes programmatically based on external data.
-
-#### Features of Oracle Flexibility
-
-- **Customization**: Market creators can select oracles with expertise suited to the event type.
-- **Diversity**: Oracles can implement custom logic for consensus, dispute resolution, and staking based on the market type.
