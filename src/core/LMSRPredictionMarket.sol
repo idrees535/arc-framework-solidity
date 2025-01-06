@@ -51,7 +51,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     address public immutable feeRecipient;
     uint8 public immutable tokenDecimals;
     uint256 public immutable payoutPerShare;
-    uint256 public immutable unitScalingFactor;
+    uint256 public  unitScalingFactor;
     uint256 public immutable i_numOutcomes;
 
     // ==============================

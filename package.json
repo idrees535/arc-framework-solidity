@@ -1,0 +1,21 @@
+{
+  "name": "lmsr-prediction-market-contracts",
+  "version": "1.0.0",
+  "description": "This repository contains the **Logarithmic Market Scoring Rule (LMSR)** implementation in Solidity, designed to provide dynamic pricing, inherent liquidity, and risk management for decentralized coverage pools.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.1.3",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.17"
+  }
+}
