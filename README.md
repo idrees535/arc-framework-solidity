@@ -17,7 +17,7 @@ curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
 
-## Setting Up the Project
+## Setting Up the Foundry Project
 
 1. **Clone the Repository**:
    ```bash
@@ -44,6 +44,48 @@ foundryup
    forge test
    ```
 
+
+## Setting Up the Hardhat Project
+
+1. **Initialize the Project**:
+   ```bash
+   npm init -y
+   npm install
+   npm install --save-dev hardhat
+   ```
+
+2. **Install Hardhat Plugins**:
+   ```bash
+   npm install --save-dev @nomicfoundation/hardhat-foundry @nomicfoundation/hardhat-toolbox
+   ```
+
+3. **Configure Hardhat**:
+   Run the Hardhat initializer:
+   ```bash
+   npx hardhat
+   ```
+   Select "Create an empty hardhat.config.js" and update it as follows:
+
+   ```javascript
+   require("@nomicfoundation/hardhat-toolbox");
+   require("@nomicfoundation/hardhat-foundry");
+
+   module.exports = {
+     solidity: "0.8.19",
+   };
+   ```
+
+4. **Run Tests**:
+   ```bash
+   npx hardhat test
+   ```
+
+5. **Deploy Contracts**:
+   ```bash
+   npx hardhat run scripts/deploy.js --network <network-name>
+   ```
+
+
 5. **Configure Network Settings**:
    Update the `.env` file with your private key and desired network settings:
    ```bash
@@ -51,14 +93,6 @@ foundryup
    RPC_URL=https://goerli.infura.io/v3/<YOUR_INFURA_PROJECT_ID>
    ```
 
-6. **Deploy the Contracts**:
-   Deploy the LMSR contract to a specified network using Foundry's deployment scripts:
-   ```bash
-   forge script script/DeployLMSR.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
-   ```
-
-7. **Verify Deployment**:
-   Verify the contract address using the output from the deployment script or Etherscan.
 
 ## Project Structure
 
@@ -75,49 +109,7 @@ foundryup
 4. **Share Trading**: Facilitates buying and selling of shares with dynamically calculated odds.
 5. **Oracle Integration**: Supports oracle mechanisms for event resolution.
 
-## Example Commands
 
-- **Compile Contracts**:
-   ```bash
-   forge build
-   ```
-
-- **Run Tests**:
-   ```bash
-   forge test
-   ```
-
-- **Deploy Contracts**:
-   ```bash
-   forge script script/DeployLMSR.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
-   ```
-
-- **Interact with Contracts**:
-   Use scripts or a front-end to interact with the deployed LMSR contract for creating pools, placing bets, and resolving events.
-
-## Deployment Script Example
-
-Below is an example of a deployment script (`script/DeployLMSR.s.sol`):
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
-
-import "forge-std/Script.sol";
-import "../src/LMSR.sol";
-
-contract DeployLMSR is Script {
-    function run() external {
-        vm.startBroadcast();
-        
-        // Deploy LMSR Contract
-        LMSR lmsr = new LMSR();
-        console.log("LMSR deployed at:", address(lmsr));
-        
-        vm.stopBroadcast();
-    }
-}
-```
 
 ## Contributing
 
