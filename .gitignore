@@ -8,6 +8,8 @@ out/
 /broadcast/**/dry-run/
 node_modules/
 node_modules/*
+/node_modules
+node_modules
 
 # Docs
 docs/
