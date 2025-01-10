@@ -82,7 +82,7 @@ foundryup
 
 5. **Deploy Contracts**:
    ```bash
-   npx hardhat run scripts/deploy.js --network <network-name>
+   npx hardhat run scripts/initialize_market.js --network <network-name>
    ```
 
 
