@@ -1,7 +1,7 @@
 
 
 const { ethers } = require("hardhat");
-const config = require("./config_sepolia.js");
+const config = require("./config.js");
 
 async function main() {
   const marketAddress = config.MARKET_ADDRESS;//"0x75537828f2ce51be7289709686A69CbFDbB714F1"; // Replace with your market address
@@ -16,13 +16,11 @@ async function main() {
   
 
   const [signer] = await ethers.getSigners();  // Get the current user (signer)
-   // Log the net cost
-   const currentB = await market.b();
-   console.log("Current b value:", currentB.toString());
+
   
   // Define the outcome index and number of shares
   const outcomeIndex = 1; // Index of the outcome you want to buy shares in
-  const numShares = 10000000;//ethers.parseUnits("100", 18);   // Number of shares you want to buy
+  const numShares = 1000;//ethers.parseUnits("100", 18);   // Number of shares you want to buy
 
   // Call estimateCost to get the net cost
  const netCost = await market.estimateCost(outcomeIndex, numShares);
@@ -58,8 +56,8 @@ async function main() {
   const outcomeIndex_1 = 1;
   const odds_1 = await market.getPrice(outcomeIndex_1);
   console.log("Updated Odds");
-  console.log(`outcomeIndex 0: ${ethers.formatUnits(odds_0,10)}`);
-  console.log(`outcomeIndex 1: ${ethers.formatUnits(odds_1,10)}`);
+  console.log(`outcomeIndex 0: ${ethers.formatUnits(odds_0,8)}`);
+  console.log(`outcomeIndex 1: ${ethers.formatUnits(odds_1,8)}`);
 }
 
 main()

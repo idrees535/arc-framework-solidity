@@ -15,17 +15,12 @@ async function main() {
   
   // Step 2: Deploy the ERC-1155 Positions Contract
   console.log("Deploying ERC-1155 positions contract...");
-  const baseURI = "https://stateless.solutions/dashboards/{id}.json"; 
-
-  const Positions = await ethers.getContractFactory("PredictionMarketPositions"); 
-  const positions = await Positions.deploy(baseURI, deployer.address); // Pass URI and deployer's address as the owner
-  await positions.waitForDeployment();
-  //console.log("ERC-1155 positions contract deployed to:", await positions.getAddress());
+  const baseURI = "https:example/dashboards/{id}.json"; 
   
   // Step 3: Deploy the MarketFactory contract with positions address
   console.log("Deploying MarketFactory...");
   const MarketFactory = await ethers.getContractFactory("MarketFactory");
-  const factory = await MarketFactory.deploy(await positions.getAddress()); // Pass ERC-1155 positions address
+  const factory = await MarketFactory.deploy(baseURI); // Pass ERC-1155 positions address
   await factory.waitForDeployment();
   console.log("MarketFactory deployed to:", await factory.getAddress());
   

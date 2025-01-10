@@ -13,19 +13,13 @@ async function main() {
   await token.waitForDeployment(); // Wait for deployment to finish
   console.log("Token deployed to:", await token.getAddress());
   
-  // Step 2: Deploy the ERC-1155 Positions Contract
-  console.log("Deploying ERC-1155 positions contract...");
-  const baseURI = "https://stateless.solutions/dashboards/{id}.json"; 
-
-  const Positions = await ethers.getContractFactory("PredictionMarketPositions"); 
-  const positions = await Positions.deploy(baseURI, deployer.address); // Pass URI and deployer's address as the owner
-  await positions.waitForDeployment();
-  //console.log("ERC-1155 positions contract deployed to:", await positions.getAddress());
+  
+  const baseURI = "https://example/dashboards/{id}.json"; 
   
   // Step 3: Deploy the MarketFactory contract with positions address
   console.log("Deploying MarketFactory...");
   const MarketFactory = await ethers.getContractFactory("MarketFactory");
-  const factory = await MarketFactory.deploy(await positions.getAddress()); // Pass ERC-1155 positions address
+  const factory = await MarketFactory.deploy(baseURI); // Pass ERC-1155 positions address
   await factory.waitForDeployment();
   console.log("MarketFactory deployed to:", await factory.getAddress());
   
@@ -39,7 +33,7 @@ async function main() {
   const duration = 3600 * 24 * 30;  // 30 days
   const feePercent = 2;  // 1%
   const marketId = Math.floor(Math.random() * 1000000);
-  const initialFunds = ethers.parseUnits("643", 18);
+  const initialFunds = ethers.parseUnits("700", 18);
 
 
     console.log("Market ID:", marketId);
@@ -52,7 +46,7 @@ async function main() {
     console.log("Fee Percent:", feePercent);
     console.log("Token Address:", await token.getAddress());
     console.log("Initial Funds:", initialFunds.toString());
-    console.log("Psoitions Address:", await positions.getAddress());
+
 
     await token.approve(factory, initialFunds);
     console.log("MarketFactory approved to spend", initialFunds.toString(), "tokens");
@@ -107,11 +101,11 @@ async function main() {
 
       const outcomeIndex_0 = 0;
       const odds_0 = await market.getPrice(outcomeIndex_0);
-      console.log(`Current Odds for outcomeIndex 0: ${ethers.formatUnits(odds_0,10)}`);
+      console.log(`Current Odds for outcomeIndex 0: ${ethers.formatUnits(odds_0,8)}`);
 
       const outcomeIndex_1 = 1;
       const odds_1 = await market.getPrice(outcomeIndex_1);
-      console.log(`Current Odds for outcomeIndex 1: ${ethers.formatUnits(odds_1,10)}`);
+      console.log(`Current Odds for outcomeIndex 1: ${ethers.formatUnits(odds_1,8)}`);
     }
 
   } catch (error) {

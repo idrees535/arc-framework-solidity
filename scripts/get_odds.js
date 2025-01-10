@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const config = require("./config_sepolia.js");
+const config = require("./config.js");
 
 async function main() {
   const marketAddress = config.MARKET_ADDRESS; // Replace with actual market address

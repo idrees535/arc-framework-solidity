@@ -1,11 +1,11 @@
 const { ethers } = require("hardhat");
-const config = require("./config_sepolia.js");
+const config = require("./config.js");
 
 async function main() {
     const marketAddress = config.MARKET_ADDRESS;//"0x75537828f2ce51be7289709686A69CbFDbB714F1"; // Replace with your market address
     const tokenAddress = config.TOKEN_ADDRESS;//"0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Replace with the ERC-20 token address
     
-    const _DECIMALS=config.DECIMALS;
+    const _DECIMALS=8
   // Get the LMSRPredictionMarket and ERC-20 token contract instances
   const PredictionMarket = await ethers.getContractFactory("LMSRPredictionMarket");
   const market = await PredictionMarket.attach(marketAddress);
@@ -16,7 +16,7 @@ async function main() {
   
   // Define the outcome index and number of shares
   const outcomeIndex = 1; // Index of the outcome you want to sell shares from
-  const numShares = 7000000;//ethers.parseUnits("1", 18);   ;   // Number of shares you want to sell
+  const numShares = 700;//ethers.parseUnits("1", 18);   ;   // Number of shares you want to sell
 
   const _funds = await market.marketMakerFunds();
   console.log("Before Market Funds: ", _funds.toString());

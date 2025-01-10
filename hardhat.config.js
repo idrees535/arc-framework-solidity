@@ -13,4 +13,10 @@ module.exports = {
       viaIR: true,       // Enable Intermediate Representation optimizer
     },
   },
+  networks: {
+    hardhat: {}, // Local Hardhat network
+    localhost: { // If you run your own local node
+      url: "http://127.0.0.1:8545",
+    }
+  }
 };

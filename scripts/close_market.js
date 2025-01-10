@@ -1,8 +1,9 @@
 const { ethers } = require("hardhat");
+const config = require("./config.js");
 
 async function main() {
   // Correct market address without any spaces
-  const marketAddress = "0x2b3F1d1bd355EdeA8fBc381bD2deFd8cFC5b684D";
+  const marketAddress = config.MARKET_ADDRESS;
 
   // Get the contract factory and attach it to the deployed address
   const PredictionMarket = await ethers.getContractFactory("LMSRPredictionMarket");
