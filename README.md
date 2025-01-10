@@ -21,8 +21,8 @@ foundryup
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-repo/lmsr-foundry.git
-   cd lmsr-foundry
+   git clone https://github.com/your-repo/arc-framework-solidity.git
+   cd arc-framework-solidity
    ```
 
 2. **Install Dependencies**:
