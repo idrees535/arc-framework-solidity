@@ -58,7 +58,7 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
     // CONSTANTS
     // ==============================
 
-    uint256 public constant SHARES_DECIMALS = 0; // Decimals for shares scaling
+    uint256 public constant SHARES_DECIMALS = 8; // Decimals for shares scaling
     uint256 public constant PERCENT_DENOMINATOR = 100; // Denominator for percentage calculations
     uint256 public constant FEE_REINVEST_PERCENT = 50; // Percentage of fees reinvested into the market maker
     uint256 public constant MAX_SHARE_TRADE = 10000; // Maximum number of shares that can be bought
@@ -157,13 +157,12 @@ contract LMSRPredictionMarket is Ownable, ReentrancyGuard, Pausable {
         feeRecipient = _feeRecipient;
         token = IERC20(_tokenAddress);
         i_numOutcomes = _outcomes.length;
+        marketMakerFunds= _initialFunds;
+        initialFunds = _initialFunds;
         // Get token decimals dynamically
         tokenDecimals = IERC20Metadata(_tokenAddress).decimals();
         positions = PredictionMarketPositions(_positionsAddress);
 
-        // Grant roles to this contract
-        //positions.grantRole(positions.MINTER_ROLE(), address(this));
-        //positions.grantRole(positions.BURNER_ROLE(), address(this));
 
         // Adjust scaling factor dynamically
         if (tokenDecimals > SHARES_DECIMALS) {

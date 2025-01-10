@@ -14,14 +14,11 @@ describe("Prediction Market Integration Test", function () {
     token = await Token.deploy(ethers.parseEther("1000000",18));
     await token.waitForDeployment();
 
-    // Deploy PredictionMarketPositions Contract
-    const Positions = await ethers.getContractFactory("PredictionMarketPositions");
-    positions = await Positions.deploy("https://example.com/metadata/", owner.address);
-    await positions.waitForDeployment();
+  
 
     // Deploy MarketFactory Contract
     const Factory = await ethers.getContractFactory("MarketFactory");
-    factory = await Factory.deploy(positions.getAddress());
+    factory = await Factory.deploy("https://example.com/metadata/");
     await factory.waitForDeployment();
 
     // Approve factory to mint tokens for test

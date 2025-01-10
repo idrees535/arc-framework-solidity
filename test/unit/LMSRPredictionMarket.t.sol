@@ -73,7 +73,10 @@ contract LMSRPredictionMarketTest is Test {
         assertGe(token.balanceOf(alice), cost, "Alice has insufficient balance to buy shares.");
 
         // Buy 10 shares of outcome 0
+        console.log("Price before buy", market.getPrice(0));
         market.buyShares(0, 1000);
+        market.getPrice(0);
+        console.log("Price After buy", market.getPrice(0));
 
         // Check Alice's share balance for outcome 0
         uint256 tokenId = positions.getTokenId(1, 0);

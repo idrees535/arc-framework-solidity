@@ -14,14 +14,9 @@ describe("LMSRPredictionMarket", function () {
     token = await Token.deploy(ethers.parseEther("1000000"));
     await token.waitForDeployment();
 
-    // Deploy PredictionMarketPositions Contract
-    const Positions = await ethers.getContractFactory("PredictionMarketPositions");
-    positions = await Positions.deploy("https://example.com/metadata/", owner.address);
-    await positions.waitForDeployment();
-
     // Deploy MarketFactory Contract
     const Factory = await ethers.getContractFactory("MarketFactory");
-    factory = await Factory.deploy(positions.getAddress());
+    factory = await Factory.deploy("https://example.com/metadata/");
     await factory.waitForDeployment();
 
     // Create a Market
@@ -31,7 +26,7 @@ describe("LMSRPredictionMarket", function () {
     const duration = 7 * 24 * 60 * 60; // 1 week
     const feePercent = 1; // 1%
     const initialFunds = ethers.parseEther("1000");
-    const marketTitle="Will service provider Infura Face a delay of more than 5 minutes in next 30 days?"
+    const marketTitle = "Will service provider Infura Face a delay of more than 5 minutes in next 30 days?"
   
 
     // Transfer tokens to user1 and user2
@@ -57,7 +52,15 @@ describe("LMSRPredictionMarket", function () {
 
     const activeMarkets = await factory.getActiveMarkets();
     const marketAddress = activeMarkets[0];
+
+    // Get the LMSRPredictionMarket contract instance
     market = await ethers.getContractAt("LMSRPredictionMarket", marketAddress);
+
+    // Retrieve the PredictionMarketPositions contract instance
+    const positionsAddress = await factory.getPositions();
+    positions = await ethers.getContractAt("PredictionMarketPositions", positionsAddress);
+
+
   });
 
   it("Should allow users to buy shares and update positions", async function () {
@@ -89,6 +92,7 @@ describe("LMSRPredictionMarket", function () {
 
     // Get price
     const price = await market.getPrice(outcomeIndex);
+    console.log("price:",price)
     expect(price).to.be.gt(0);
   });
 

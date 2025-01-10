@@ -13,7 +13,7 @@ describe("Prediction Market Stress Tests", function () {
     let duration = 3600 * 24 * 30;  // 30 days
     let feePercent = 20;
     let marketId = 1;
-    let initialFunds=ethers.parseUnits("5000", 18);
+    let initialFunds=ethers.parseUnits("1000", 18);
     let marketTitle="Will service provider Infura Face a delay of more than 5 minutes in next 30 days?"
 
     beforeEach(async () => {
@@ -25,14 +25,11 @@ describe("Prediction Market Stress Tests", function () {
         token = await Token.deploy(ethers.parseUnits("10000000", 18));
         await token.waitForDeployment();
 
-        // Deploy ERC1155 positions contract
-        PredictionMarketPositions = await ethers.getContractFactory("PredictionMarketPositions");
-        positions = await PredictionMarketPositions.deploy("https://metadata-uri.com/{id}.json", owner.address);
-        await positions.waitForDeployment();
+      
 
         // Deploy MarketFactory contract
         MarketFactory = await ethers.getContractFactory("MarketFactory");
-        factory = await MarketFactory.deploy(await positions.getAddress());
+        factory = await MarketFactory.deploy("https://metadata-uri.com/{id}.json");
         await factory.waitForDeployment();
     
         // Approve factory to mint tokens for test
@@ -94,6 +91,9 @@ describe("Prediction Market Stress Tests", function () {
             await tx.wait();
             const activeMarkets = await factory.getActiveMarkets();
             market = await ethers.getContractAt("LMSRPredictionMarket", activeMarkets[0]);
+                // Retrieve the PredictionMarketPositions contract instance
+        const positionsAddress = await factory.getPositions();
+        positions = await ethers.getContractAt("PredictionMarketPositions", positionsAddress);
         });
 
         it("Should estimate cost to buy shares", async () => {

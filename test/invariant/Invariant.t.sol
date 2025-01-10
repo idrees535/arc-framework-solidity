@@ -66,8 +66,6 @@ contract LMSRInvariantTest is StdInvariant, Test {
         positions = PredictionMarketPositions(positionsAddress);
         
         vm.prank(owner);
-        token.transfer(address(market), 1000 * 1e18);
-        console.log('Market Token balance After: ',token.balanceOf(address(market)));
         console.log('Market Funds After: ',market.marketMakerFunds());
 
         // Deploy Handler
@@ -142,14 +140,14 @@ contract LMSRInvariantTest is StdInvariant, Test {
         }
     }
 
-    // Invariant: Contract token balance matches funds
-    // function invariant_tokenBalanceMatchesFunds() public view {
-    //     uint256 contractTokenBalance = token.balanceOf(address(market));
-    //     uint256 expectedBalance = market.marketMakerFunds() + market.collectedFees();
-    //     //console.log('contractTokenBalance: ',contractTokenBalance);
-    //     //console.log('expectedBalance: ', expectedBalance);
-    //     assertEq(contractTokenBalance, expectedBalance, "Token balance mismatch");
-    // }
+    //Invariant: Contract token balance matches funds
+    function invariant_tokenBalanceMatchesFunds() public view {
+        uint256 contractTokenBalance = token.balanceOf(address(market));
+        uint256 expectedBalance = market.marketMakerFunds() + market.collectedFees();
+        //console.log('contractTokenBalance: ',contractTokenBalance);
+        //console.log('expectedBalance: ', expectedBalance);
+        assertEq(contractTokenBalance, expectedBalance, "Token balance mismatch");
+    }
 
     // Invariant: User share balances are correct
     function invariant_userShareBalancesCorrect() public view {
