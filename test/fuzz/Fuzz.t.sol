@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 import "../../src/core/LMSRPredictionMarket.sol";
 import "../../src/core/PredictionMarketPositions.sol";
+import "../../src/core/MarketFactory.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../src/mock/ERC20Token.sol";
 import "forge-std/console.sol";
@@ -12,6 +13,8 @@ contract FuzzTest is Test {
     LMSRPredictionMarket market;
     PredictionMarketPositions positions;
     ERC20Token token;
+    address marketAddress;
+    uint256 initialFunds = 694e18;
 
     address owner = address(this);
     address alice = address(0x1);
@@ -26,23 +29,28 @@ contract FuzzTest is Test {
         vm.prank(owner);
         token.transfer(alice, 500_000 * 1e18); // Allocate a larger amount to Alice
 
-        // Deploy PredictionMarketPositions contract
-        positions = new PredictionMarketPositions("https://example.com/{id}.json", owner);
+         MarketFactory factory = new MarketFactory("https://example.com/{id}.json");
+           // Approve the factory to spend the initialFunds on behalf of the owner
+        vm.prank(owner);
+        token.approve(address(factory), initialFunds);
 
-        // Deploy LMSRPredictionMarket with initial liquidity funds
-        market = new LMSRPredictionMarket(
+    
+        marketAddress = factory.createMarket(
             1, // marketId
             "Will it rain tomorrow?", // title
             outcomes,
             owner, // oracle
-            10000, // b
+            1000, // b (liquidity parameter)
             1 days, // duration
             1, // feePercent
             owner, // feeRecipient
             address(token), // tokenAddress
-            10000 * 1e18, // initialFunds for liquidity
-            address(positions) // positionsAddress
+            initialFunds // initialFunds
         );
+
+        market = LMSRPredictionMarket(marketAddress);
+        address positionsAddress = factory.getPositions();
+    positions = PredictionMarketPositions(positionsAddress);
     }
 
     function testFuzzBuyShares(uint256 numShares) public {

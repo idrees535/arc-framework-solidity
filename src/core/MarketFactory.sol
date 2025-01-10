@@ -18,11 +18,11 @@ contract MarketFactory is Ownable {
 
     /**
      * @dev Constructor to initialize the factory with the ERC-1155 positions contract
-     * @param _positionsAddress Address of the deployed PredictionMarketPositions contract
+     * @param baseURI URI of positions address
      */
 
-    constructor(address _positionsAddress) Ownable(msg.sender) {
-        positions = PredictionMarketPositions(_positionsAddress);
+    constructor(string memory baseURI) Ownable(msg.sender) {
+        positions = new PredictionMarketPositions(baseURI, address(this));
     }
 
     function createMarket(
@@ -36,7 +36,7 @@ contract MarketFactory is Ownable {
         address feeRecipient,
         address tokenAddress,
         uint256 initialFunds
-    ) public {
+    ) public returns (address) {
         // Deploy the LMSRPredictionMarket contract
 
         LMSRPredictionMarket newMarket = new LMSRPredictionMarket(
@@ -51,6 +51,7 @@ contract MarketFactory is Ownable {
             tokenAddress,
             initialFunds,
             address(positions)
+            
         );
 
         // Add the new market to the list of active markets
@@ -60,8 +61,8 @@ contract MarketFactory is Ownable {
         emit MarketCreated(address(newMarket), title);
 
         // Grant roles to this contract
-        positions.grantRole(positions.MINTER_ROLE(), address(this));
-        positions.grantRole(positions.BURNER_ROLE(), address(this));
+        positions.grantRole(positions.MINTER_ROLE(), address(newMarket));
+        positions.grantRole(positions.BURNER_ROLE(), address(newMarket));
         emit RolesGranted(address(newMarket));
 
         if (initialFunds > 0) {
@@ -76,6 +77,8 @@ contract MarketFactory is Ownable {
         }
     // Transfer ownership of the deployed market to the creator
         newMarket.transferOwnership(msg.sender);
+
+        return address(newMarket);
     }
 
     /**
@@ -84,4 +87,9 @@ contract MarketFactory is Ownable {
     function getActiveMarkets() public view returns (address[] memory) {
         return activeMarkets;
     }
+
+    function getPositions() public view returns (address) {
+    return address(positions);
+}
+
 }

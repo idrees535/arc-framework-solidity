@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 import "../../src/core/LMSRPredictionMarket.sol";
 import "../../src/core/PredictionMarketPositions.sol";
+import "../../src/core/MarketFactory.sol";
+
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../src/mock/ERC20Token.sol";
 
@@ -11,6 +13,7 @@ contract LMSRPredictionMarketTest is Test {
     LMSRPredictionMarket market;
     PredictionMarketPositions positions;
     ERC20Token token;
+    address marketAddress;
 
     address owner = address(this);
     address alice = address(0x1);
@@ -28,10 +31,14 @@ contract LMSRPredictionMarketTest is Test {
         vm.prank(owner);
         token.transfer(bob, 1000 * 1e18);
 
-        // Deploy PredictionMarketPositions contract
-        positions = new PredictionMarketPositions("https://example.com/{id}.json", owner);
-        // Deploy LMSRPredictionMarket with initial funds for liquidity
-        market = new LMSRPredictionMarket(
+        MarketFactory factory = new MarketFactory("https://example.com/{id}.json");
+
+        // Approve the factory to spend the initialFunds on behalf of the owner
+        vm.prank(owner);
+        token.approve(address(factory), initialFunds);
+
+    
+        marketAddress = factory.createMarket(
             1, // marketId
             "Will it rain tomorrow?", // title
             outcomes,
@@ -41,16 +48,14 @@ contract LMSRPredictionMarketTest is Test {
             1, // feePercent
             owner, // feeRecipient
             address(token), // tokenAddress
-            initialFunds, // initialFunds
-            address(positions) // positionsAddress
+            initialFunds // initialFunds
         );
 
-        
+    market = LMSRPredictionMarket(marketAddress);
+    address positionsAddress = factory.getPositions();
+    positions = PredictionMarketPositions(positionsAddress);
 
-        // Grant roles to LMSRPredictionMarket contract
-    positions.grantRole(positions.MINTER_ROLE(), address(market));
-    positions.grantRole(positions.BURNER_ROLE(), address(market));
-    console.log("Market address: ", address(market));
+    console.log("Market address: ", marketAddress);
     console.log ("Initial funds allocated: ",initialFunds );
     
     console.log("minimum initial funds calcualted: ", market.calculateMinimumInitialFunds(1000, 2));

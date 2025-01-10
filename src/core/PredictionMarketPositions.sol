@@ -13,6 +13,10 @@ contract PredictionMarketPositions is ERC1155, Ownable, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
+    event TokensMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
+    event TokensBurned(address indexed from, uint256 indexed tokenId, uint256 amount);
+
+
     constructor(string memory _uri, address _initialOwner) ERC1155(_uri) Ownable(_initialOwner) {
         // Metadata URI for each token
         baseURI = _uri;
@@ -20,6 +24,7 @@ contract PredictionMarketPositions is ERC1155, Ownable, AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, _initialOwner);
         _grantRole(MINTER_ROLE, _initialOwner);
         _grantRole(BURNER_ROLE, _initialOwner);
+
     }
     // Override supportsInterface to resolve conflict between AccessControl and ERC1155
     function supportsInterface(bytes4 interfaceId)
@@ -78,6 +83,6 @@ contract PredictionMarketPositions is ERC1155, Ownable, AccessControl {
         return string(abi.encodePacked(baseURI, Strings.toString(tokenId), ".json"));
     }
 
-    event TokensMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
-    event TokensBurned(address indexed from, uint256 indexed tokenId, uint256 amount);
+
+   
 }
