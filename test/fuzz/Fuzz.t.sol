@@ -40,7 +40,7 @@ contract FuzzTest is Test {
             1, // feePercent
             owner, // feeRecipient
             address(token), // tokenAddress
-            1000 * 1e18, // initialFunds for liquidity
+            10000 * 1e18, // initialFunds for liquidity
             address(positions) // positionsAddress
         );
     }
