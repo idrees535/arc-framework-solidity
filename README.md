@@ -21,7 +21,7 @@ foundryup
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-repo/arc-framework-solidity.git
+   git clone https://github.com/idrees535/arc-framework-solidity.git
    cd arc-framework-solidity
    ```
 
