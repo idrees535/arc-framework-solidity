@@ -101,15 +101,6 @@ foundryup
 - `test`: Unit tests for the LMSR contract.
 - `.env`: Configuration for private key and network RPC.
 
-## LMSR Features
-
-1. **Dynamic Pricing**: Implements the LMSR cost function for share price adjustments.
-2. **Inherent Liquidity**: Ensures markets remain liquid via the `b` parameter.
-3. **Worst-Case Loss Coverage**: Calculates maximum potential loss to secure payouts.
-4. **Share Trading**: Facilitates buying and selling of shares with dynamically calculated odds.
-5. **Oracle Integration**: Supports oracle mechanisms for event resolution.
-
-
 
 ## Contributing
 
