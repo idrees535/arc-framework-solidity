@@ -1,5 +1,7 @@
 
 # ARC Framework Solidity Implementation
+## ARC Framework Thesis
+https://medium.com/@idrees535/adaptive-risk-coverage-arc-framework-a-dynamic-approach-of-next-order-value-aggregation-and-f2ec5cc58a77
 
 This repository contains the **Logarithmic Market Scoring Rule (LMSR)** implementation in Solidity, designed to provide dynamic pricing, inherent liquidity, and risk management for decentralized coverage pools.
 
